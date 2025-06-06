@@ -15,7 +15,7 @@
 ### 从 wheel 安装
 
 ```bash
-pip install python2-magic-1.0.0-py2.py3-none-any.whl
+pip install magic-1.0.0-py2.py3-none-any.whl
 ```
 
 ### 从源码安装
@@ -143,12 +143,6 @@ apt-get install file
 yum install file-devel
 apt-get install libmagic-dev
 ```
-
-### Q: 与 python-magic 的区别？
-
-A: 
-- **python2-magic**: 使用 ctypes 直接调用 libmagic，Python 2 兼容
-- **python-magic**: Python 3 库，需要额外安装
 
 ### Q: 性能如何？
 
