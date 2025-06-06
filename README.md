@@ -1,136 +1,219 @@
-# python2-magic
+# magic
 
-一个 Python 2 兼容的 magic 库包装器，使用 ctypes 直接调用 libmagic，无需安装 python-magic。
+A Python 2 compatible magic library wrapper that uses ctypes to directly call libmagic, without requiring python-magic installation.
 
-## 特性
+## Features
 
-- **Python 2 兼容**：专为 Python 2.7 设计，同时兼容 Python 3
-- **无额外依赖**：只使用 Python 标准库，通过 ctypes 直接调用 libmagic
-- **简单易用**：提供与 python-magic 兼容的 API
-- **高性能**：直接调用 C 库，性能优异
-- **自动库发现**：自动搜索系统中的 libmagic 库
+- **Python 2 Compatible**: Designed for Python 2.7, also compatible with Python 3
+- **No Extra Dependencies**: Only uses Python standard library, directly calls libmagic via ctypes
+- **Easy to Use**: Provides python-magic compatible API
+- **High Performance**: Direct C library calls, excellent performance
+- **Auto Library Discovery**: Automatically searches for libmagic library in system
+- **Resource Management**: Smart resource management with shared instances and context managers
 
-## 安装
+## Installation
 
-### 从 wheel 安装
+### Install from wheel
 
 ```bash
 pip install magic-1.0.0-py2.py3-none-any.whl
 ```
 
-### 从源码安装
+### Install from source
 
 ```bash
 python setup.py install
 ```
 
-### 构建 wheel
+### Build wheel
 
 ```bash
 python setup.py bdist_wheel
 ```
 
-## 使用方法
+## Usage
 
-### 基本用法
+### Simple Usage (Recommended)
+
+```python
+import magic
+
+# Detect file type
+file_type = magic.from_file('/path/to/file')
+print("File type: %s" % file_type)
+
+# Detect MIME type
+mime_type = magic.from_file('/path/to/file', mime=True)
+print("MIME type: %s" % mime_type)
+
+# Detect buffer content
+buffer_content = "#!/bin/bash\necho 'Hello World'"
+buffer_type = magic.from_buffer(buffer_content)
+print("Buffer type: %s" % buffer_type)
+```
+
+### Context Manager (Resource Controlled)
+
+```python
+import magic
+
+# Recommended for batch processing
+with magic.Magic() as m:
+    for filename in file_list:
+        result = m.from_file(filename)
+        print("%s: %s" % (filename, result))
+# Resources automatically cleaned up
+```
+
+### Object-Oriented Interface
+
+```python
+import magic
+
+# Create Magic instance
+m = magic.Magic()
+try:
+    file_type = m.from_file('/path/to/file')
+    print("File type: %s" % file_type)
+finally:
+    m.close()  # Remember to close
+
+# MIME type detection instance
+mime_magic = magic.Magic(mime=True)
+try:
+    mime_type = mime_magic.from_file('/path/to/file')
+    print("MIME type: %s" % mime_type)
+finally:
+    mime_magic.close()
+
+# MIME encoding detection instance
+encoding_magic = magic.Magic(mime_encoding=True)
+try:
+    encoding = encoding_magic.from_file('/path/to/file')
+    print("Encoding: %s" % encoding)
+finally:
+    encoding_magic.close()
+```
+
+### Legacy magic_wrapper Interface
 
 ```python
 import magic_wrapper
 
-# 检测文件类型
+# Direct module functions (uses shared instances)
 file_type = magic_wrapper.magic_from_file('/path/to/file')
-print("文件类型: %s" % file_type)
-
-# 检测 MIME 类型
 mime_type = magic_wrapper.magic_from_file('/path/to/file', mime=True)
-print("MIME 类型: %s" % mime_type)
-
-# 检测缓冲区内容
-buffer_content = "#!/bin/bash\necho 'Hello World'"
 buffer_type = magic_wrapper.magic_from_buffer(buffer_content)
-print("缓冲区类型: %s" % buffer_type)
 ```
 
-### 面向对象接口
+## Command Line Tool
 
-```python
-from magic_wrapper import Magic
+After installation, you can use the `py2-magic` command:
 
-# 创建 Magic 实例
-m = Magic()
-file_type = m.from_file('/path/to/file')
+```bash
+# Detect single file
+py2-magic file.txt
 
-# 创建 MIME 类型检测实例
-mime_magic = Magic(mime=True)
-mime_type = mime_magic.from_file('/path/to/file')
+# Detect multiple files
+py2-magic file1.txt file2.jpg file3.pdf
 
-# 创建 MIME 编码检测实例
-encoding_magic = Magic(mime_encoding=True)
-encoding = encoding_magic.from_file('/path/to/file')
+# Get MIME type
+py2-magic --mime file.txt
+
+# Get MIME encoding
+py2-magic --mime-encoding file.txt
+
+# Show version
+py2-magic --version
+
+# Show help
+py2-magic --help
 ```
 
-## API 参考
+## API Reference
 
-### 便捷函数
+### Convenience Functions
 
-#### `magic_from_file(filename, mime=False)`
+#### `magic.from_file(filename, mime=False)`
 
-从文件检测类型信息。
+Detect type information from file (uses shared instance).
 
-**参数：**
-- `filename` (str): 文件路径
-- `mime` (bool): 是否返回 MIME 类型，默认 False
+**Parameters:**
+- `filename` (str): File path
+- `mime` (bool): Return MIME type, default False
 
-**返回：**
-- str: 文件类型信息
+**Returns:**
+- str: File type information
 
-#### `magic_from_buffer(buffer_data, mime=False)`
+#### `magic.from_buffer(buffer_data, mime=False)`
 
-从缓冲区数据检测类型信息。
+Detect type information from buffer data (uses shared instance).
 
-**参数：**
-- `buffer_data` (str/bytes): 缓冲区数据
-- `mime` (bool): 是否返回 MIME 类型，默认 False
+**Parameters:**
+- `buffer_data` (str/bytes): Buffer data
+- `mime` (bool): Return MIME type, default False
 
-**返回：**
-- str: 数据类型信息
+**Returns:**
+- str: Data type information
 
-### Magic 类
+### Magic Class
 
 #### `Magic(mime=False, mime_encoding=False)`
 
-创建 Magic 实例。
+Create Magic instance.
 
-**参数：**
-- `mime` (bool): 返回 MIME 类型，默认 False
-- `mime_encoding` (bool): 返回 MIME 编码，默认 False
+**Parameters:**
+- `mime` (bool): Return MIME type, default False
+- `mime_encoding` (bool): Return MIME encoding, default False
 
 #### `Magic.from_file(filename)`
 
-从文件检测类型。
+Detect type from file.
 
 #### `Magic.from_buffer(buffer_data)`
 
-从缓冲区检测类型。
+Detect type from buffer.
 
-## 系统要求
+#### `Magic.close()`
 
-- Python 2.7 或 Python 3.4+
-- libmagic 库（通常随系统安装）
-- Linux/Unix 系统
+Explicitly close resources.
 
-## 常见问题
+#### Context Manager Support
 
-### Q: 找不到 libmagic 库怎么办？
+```python
+with Magic() as m:
+    # Use m here
+    pass
+# Automatically closed
+```
 
-A: 库会自动搜索以下路径：
+## Resource Management
+
+This library provides intelligent resource management:
+
+1. **Shared Instances**: `magic.from_file()` and `magic.from_buffer()` use global shared instances
+2. **Context Manager**: `Magic` class supports `with` statement for automatic cleanup
+3. **Explicit Control**: Call `close()` method for manual resource management
+4. **No Memory Leaks**: Proper cleanup prevents resource leaks
+
+## System Requirements
+
+- Python 2.7 or Python 3.4+
+- libmagic library (usually installed with system)
+- Linux/Unix systems
+
+## FAQ
+
+### Q: What if libmagic library is not found?
+
+A: The library automatically searches these paths:
 - `/usr/lib64/libmagic.so.1.0.0`
 - `/usr/lib64/libmagic.so.1`
 - `/usr/lib64/libmagic.so`
 - `/usr/lib/libmagic.so.1`
-- 其他标准路径
+- Other standard paths
 
-如果仍然找不到，请安装 `file` 包：
+If still not found, install the `file` package:
 
 ```bash
 # CentOS/RHEL
@@ -139,27 +222,36 @@ yum install file
 # Ubuntu/Debian  
 apt-get install file
 
-# 或安装开发包
+# Or install development packages
 yum install file-devel
 apt-get install libmagic-dev
 ```
 
-### Q: 性能如何？
+### Q: Difference from python-magic?
 
-A: 由于直接调用 C 库，性能与 python-magic 相当，甚至更好。
+A: 
+- **magic**: Uses ctypes to directly call libmagic, Python 2 compatible
+- **python-magic**: Python 3 library, requires separate installation
 
-## 许可证
+### Q: Performance?
+
+A: Due to direct C library calls, performance is comparable to python-magic, sometimes even better.
+
+## License
 
 MIT License
 
-## 贡献
+## Contributing
 
-欢迎提交 Issue 和 Pull Request！
+Issues and Pull Requests are welcome!
 
-## 更新日志
+## Changelog
 
 ### v1.0.0 (2024-XX-XX)
-- 初始版本
-- 支持 Python 2.7 和 Python 3
-- 提供完整的 libmagic 包装
-- 自动库发现功能 
+- Initial release
+- Support for Python 2.7 and Python 3
+- Complete libmagic wrapper
+- Auto library discovery
+- Resource management with shared instances
+- Context manager support
+- Command line tool 
